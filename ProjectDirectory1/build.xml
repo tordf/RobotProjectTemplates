@@ -1,0 +1,136 @@
+<project name="lejos" default="default" basedir=".">
+    <!--description>Builds, tests, and runs the project AntManager.</description-->
+  <!-- set properties for this build -->
+  <property environment = "env"/>
+  <property file="build.properties"/>
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="main.class" value="org.lejos.example.HelloWorld"/>
+  <property name="binary" value="${build}/${main.class}.nxj" />
+	
+  <!-- deletes generated files -->
+  <target name="clean" description="clean up all generated files">
+  	<delete dir="build"/>
+  </target>
+
+  <target name="compile" depends="clean"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} to ${build}  -->
+  	<mkdir dir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}">
+      <bootclasspath>
+        <pathelement location="${nxj.classes.home}/lib/classes.jar"/>
+      </bootclasspath>
+    </javac>
+  </target>
+
+  <target name="link" depends="compile"
+        description="link the binary " >
+    <!-- Link the binary and create a signature file -->
+    <java classname="js.tinyvm.TinyVM">
+      <arg value="--bootclasspath"/>
+      <arg path="${nxj.classes.jar}" />
+      <arg value="--classpath"/>
+      <arg path="${build}" />
+      <arg value="--writeorder" />
+      <arg value="LE" />
+      <arg value="${main.class}"/>
+      <arg value="-o"/>
+      <arg value="${binary}"/>
+      <arg value="-v"/>
+      <classpath>
+        <pathelement location="${nxj.jtools.jar}"/>
+  		<pathelement location="${nxj.commons.jar}"/>
+  		<pathelement location="${nxj.bcel.jar}"/>
+      </classpath>
+    </java>
+  </target>
+  <target name="CheckAddress">
+      <condition property="hasAdress">
+          <isset property="dAddress"/>
+      </condition>
+  </target>
+  <target name="deploy" depends="link"
+        description="upload the binary" >
+    <java classname="lejos.pc.tools.NXJUpload" fork="true">
+      <jvmarg value="-Djava.library.path=${nxj.library.path}"/>
+      <jvmarg value="-Dnxj.home=${nxj.home}"/>
+      <arg value="${binary}"/>
+      <if name="dAddress">
+          <arg value="-address ${dAddress} -b"/>
+      </if>
+      <classpath>
+        <pathelement location="${nxj.jtools.jar}"/>
+        <pathelement location="${nxj.pctools.jar}"/>
+      	<pathelement location="${nxj.pccomm.jar}"/>
+  		<pathelement location="${nxj.commons.jar}"/>
+  		<pathelement location="${nxj.bcel.jar}"/>
+      	<pathelement location="${nxj.bluecove.jar}"/>
+      	<pathelement location="${nxj.bluecove-gpl.jar}"/>
+      </classpath>
+    </java>
+  </target>
+	
+  <target name="run" depends="link"
+        description="upload and run the binary" >
+    <if name="dAddress">
+          <then>
+              <echo>"using a specific address"</echo>
+              <antcall target="run_address"/>
+          </then>
+          <else>
+              <echo>"using any available address"</echo>
+              <antcall target="run_any"/>
+          </else>
+    </if>
+  </target>
+  
+  <target name="run_address">
+      <java classname="lejos.pc.tools.NXJUpload" fork="true">
+      <jvmarg value="-Djava.library.path=${nxj.library.path}"/>
+      <jvmarg value="-Dnxj.home=${nxj.home}"/>
+      <arg value="${binary}"/>
+      <arg value="-r"/>
+      <arg value="-address ${dAddress} -b"/>
+      <classpath>
+        <pathelement location="${nxj.jtools.jar}"/>
+        <pathelement location="${nxj.pctools.jar}"/>
+      	<pathelement location="${nxj.pccomm.jar}"/>
+  		<pathelement location="${nxj.commons.jar}"/>
+  		<pathelement location="${nxj.bcel.jar}"/>
+      	<pathelement location="${nxj.bluecove.jar}"/>
+      	<pathelement location="${nxj.bluecove-gpl.jar}"/>
+      </classpath>
+    </java>
+  </target>
+  <target name="run_any">
+      <java classname="lejos.pc.tools.NXJUpload" fork="true">
+      <jvmarg value="-Djava.library.path=${nxj.library.path}"/>
+      <jvmarg value="-Dnxj.home=${nxj.home}"/>
+      <arg value="${binary}"/>
+      <arg value="-r"/>
+
+      <classpath>
+        <pathelement location="${nxj.jtools.jar}"/>
+        <pathelement location="${nxj.pctools.jar}"/>
+      	<pathelement location="${nxj.pccomm.jar}"/>
+  		<pathelement location="${nxj.commons.jar}"/>
+  		<pathelement location="${nxj.bcel.jar}"/>
+      	<pathelement location="${nxj.bluecove.jar}"/>
+      	<pathelement location="${nxj.bluecove-gpl.jar}"/>
+      </classpath>
+    </java>
+  </target>
+
+  <!--  used only for modifying the Netbeans NXJPlugin -->
+    <target name="Zip for Netbeans" description="Zip the application to the sample project">
+        <property name="build.classes.dir" location="/build"/>
+        <property name="plugin" location="../NXJPlugin/src/nxjplugin/"/>
+        <zip basedir="." destfile="${plugin}/NXJSampleProject.zip">
+            <exclude name="**/build/"/>
+            <exclude name="**/bin/"/>
+            <exclude name="**/dist/"/>
+            <exclude name="**/nbproject/private/"/>
+        </zip>
+    </target>
+</project>
