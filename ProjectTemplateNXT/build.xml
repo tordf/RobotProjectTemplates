@@ -7,7 +7,8 @@
   <property name="build" location="build"/>
   <property name="main.class" value="org.lejos.example.HelloWorld"/>
   <property name="binary" value="${build}/${main.class}.nxj" />
-	
+  
+
   <!-- deletes generated files -->
   <target name="clean" description="clean up all generated files">
   	<delete dir="build"/>
@@ -71,17 +72,19 @@
     </java>
   </target>
 	
-  <target name="run" depends="link"
-        description="upload and run the binary" >
+  <target name="run" description="upload and run the binary">
+      <!--depends="link"-->
+     <!--taskdef resource="net/sf/antcontrib/antcontrib.properties"/-->
+    <taskdef name="if" classname="ise.antelope.tasks.IfTask"/>
     <if name="dAddress">
-          <then>
-              <echo>"using a specific address"</echo>
-              <antcall target="run_address"/>
-          </then>
-          <else>
-              <echo>"using any available address"</echo>
-              <antcall target="run_any"/>
-          </else>
+        <then>
+          <echo>using a specific address"</echo>
+          <antcall target="run_address"/>
+        </then>                    
+        <else>
+           <echo>using any available address</echo>
+           <antcall target="run_any"/>
+        </else>
     </if>
   </target>
   
